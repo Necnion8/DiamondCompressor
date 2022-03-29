@@ -22,12 +22,12 @@ public final class DiamondCompressorPlugin extends JavaPlugin implements Listene
 
     private void registerItems() {
         MetaCraftingAPI.registerCustomItem(this, CompressedDiamond.X4);
-        MetaCraftingAPI.registerCustomRecipe(this, makeRecipe("d4_to_d_comped1")
+        MetaCraftingAPI.registerCustomRecipe(this, makeRecipe("d4_to_d_comped4")
                 .shape("dd", "dd")
                 .setIngredient('d', Material.DIAMOND)
                 .setResult(CompressedDiamond.X4, 1)
                 .create());
-        MetaCraftingAPI.registerCustomRecipe(this, makeRecipe("d_comped1_to_d4")
+        MetaCraftingAPI.registerCustomRecipe(this, makeRecipe("d_comped4_to_d4")
                 .shape("c")
                 .setIngredient('c', CompressedDiamond.X4)
                 .setResult(Material.DIAMOND, 4)
