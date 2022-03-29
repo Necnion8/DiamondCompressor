@@ -18,8 +18,9 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:22.0.0'
+    implementation 'org.jetbrains:annotations:23.0.0'
     compileOnly 'org.spigotmc:spigot-api:1.14.4-R0.1-SNAPSHOT'
+    implementation files("libs/MetaCraftingAPI-1.0.0.jar")
 }
 
 def targetJavaVersion = 8

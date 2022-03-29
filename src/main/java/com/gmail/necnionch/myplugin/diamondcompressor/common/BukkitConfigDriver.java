@@ -1,4 +1,4 @@
-package com.gmail.necnionch.myplugin.guildsystem.common;
+package com.gmail.necnionch.myplugin.diamondcompressor.common;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.ByteStreams;
