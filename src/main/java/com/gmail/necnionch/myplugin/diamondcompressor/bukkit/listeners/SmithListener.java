@@ -2,6 +2,7 @@ package com.gmail.necnionch.myplugin.diamondcompressor.bukkit.listeners;
 
 import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.CompressedDiamond;
 import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.DiamondCompressorPlugin;
+import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.events.CompressedDiamondEnhanceLevelEvent;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.events.MetaCraftPrepareSmithEvent;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.events.SlotItem;
 import org.bukkit.Material;
@@ -133,16 +134,24 @@ public class SmithListener implements Listener {
                     // どれか一つ選ぶ
                     Enchantment target = entries.get(new Random().nextInt(entries.size()));
                     int level = enchants.getStoredEnchantLevel(target);
+                    int newLevel = level;
+                    boolean result;
 //                    System.out.println("SEL " + target.getKey());
 
                     if (new Random().nextFloat() <= rate) {
-                        // levelUp!
-                        enchants.addStoredEnchant(target, level + 1, true);
-//                        System.out.println("HIT : " + (level + 1));
+                        newLevel++;
+                        result = true;
                     } else {
-//                        System.out.println("FAIL");
-                        enchants.addStoredEnchant(target, 1, true);
+                        newLevel = 1;
+                        result = false;
                     }
+                    enchants.addStoredEnchant(target, newLevel, true);
+
+                    plugin.getServer().getPluginManager().callEvent(new CompressedDiamondEnhanceLevelEvent(
+                            ((Player) clicker).getPlayer(),
+                            ((SmithingInventory) event.getInventory()),
+                            itemStack, compressed, target, level, newLevel, result
+                    ));
 
                 } else {
                     throw new NoSuchAction();  // cancelling smith
