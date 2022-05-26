@@ -1,6 +1,6 @@
 name: DiamondCompressor
 version: '${version}'
 main: com.gmail.necnionch.myplugin.diamondcompressor.bukkit.DiamondCompressorPlugin
-api-version: 1.14
+api-version: 1.16
 authors: [ Necnion8 ]
 depend: [ MetaCraftingAPI ]

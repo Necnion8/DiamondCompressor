@@ -1,5 +1,6 @@
 package com.gmail.necnionch.myplugin.diamondcompressor.bukkit;
 
+import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.MetaCraftingAPI;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.item.CustomItem;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -17,6 +18,25 @@ public class CompressedDiamond extends CustomItem {
     public static final CompressedDiamond X64 = new CompressedDiamond("compressed_diamond_x64", 64, "64倍圧縮ダイヤ");
     public static final CompressedDiamond X256 = new CompressedDiamond("compressed_diamond_x256", 256, "256倍圧縮ダイヤ");
     public static final CompressedDiamond X1024 = new CompressedDiamond("compressed_diamond_x1024", 1024, "1024倍圧縮ダイヤ");
+
+    public static CompressedDiamond from(ItemStack itemStack) {
+        CustomItem customItem = MetaCraftingAPI.getCustomItemByItemStack(itemStack);
+        return (customItem instanceof CompressedDiamond) ? ((CompressedDiamond) customItem) : null;
+    }
+
+    public static CompressedDiamond from(String itemId) {
+        if (X4.itemId.equalsIgnoreCase(itemId))
+            return X4;
+        if (X16.itemId.equalsIgnoreCase(itemId))
+            return X16;
+        if (X64.itemId.equalsIgnoreCase(itemId))
+            return X64;
+        if (X256.itemId.equalsIgnoreCase(itemId))
+            return X256;
+        if (X1024.itemId.equalsIgnoreCase(itemId))
+            return X1024;
+        return null;
+    }
 
     public CompressedDiamond(String itemId, int diamondTotalAmount, String name) {
         this.itemId = itemId;
@@ -44,11 +64,11 @@ public class CompressedDiamond extends CustomItem {
     public @NotNull ItemStack create() {
         ItemStack itemStack = new ItemStack(getRecipeMaterial());
         ItemMeta meta = itemStack.getItemMeta();
-
+        if (meta != null) {
 //        meta.setCustomModelData(customModel);
-        meta.setDisplayName(ChatColor.AQUA + name);
-
-        itemStack.setItemMeta(meta);
+            meta.setDisplayName(ChatColor.AQUA + name);
+            itemStack.setItemMeta(meta);
+        }
         return itemStack;
     }
 
