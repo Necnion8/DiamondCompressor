@@ -5,8 +5,7 @@ import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.DiamondCompressorPl
 import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.events.CompressedDiamondEnhanceLevelEvent;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.events.MetaCraftPrepareSmithEvent;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.events.SlotItem;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
@@ -15,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.SmithingInventory;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -22,9 +22,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
 
@@ -69,7 +67,9 @@ public class SmithListener implements Listener {
 
     private ItemStack preCraft(SlotItem[] slots) {
         ItemStack source = slots[0].getItemStack();
-        if (source == null || !Material.ENCHANTED_BOOK.equals(source.getType()) || !(source.getItemMeta() instanceof EnchantmentStorageMeta))
+        if (source == null)
+            return null;
+        if (!Material.ENCHANTED_BOOK.equals(source.getType()) || !(source.getItemMeta() instanceof EnchantmentStorageMeta))
             return null;
         if (!(slots[1].getCustomItem() instanceof CompressedDiamond))
             return null;
@@ -89,6 +89,23 @@ public class SmithListener implements Listener {
 
         PersistentDataContainer data = enchantBook.getPersistentDataContainer();
         data.set(new NamespacedKey(plugin, "apply_anvil"), PersistentDataType.STRING, compressed.getItemId());  // todo: lore tuika
+
+        // hide enchants
+        if (enchantBook.hasItemFlag(ItemFlag.HIDE_POTION_EFFECTS)) {
+            data.set(new NamespacedKey(plugin, "hide_potion_effects"), PersistentDataType.BYTE, (byte) 1);
+        }
+        enchantBook.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+
+        // store lore
+        if (enchantBook.getLore() != null) {
+            String storedLore = enchantBook.getLore().stream()
+                    .map(s -> s.replace("\n", "\\n"))
+                    .collect(Collectors.joining("\n"));
+            data.set(new NamespacedKey(plugin, "stored_lore"), PersistentDataType.STRING, storedLore);
+        }
+        List<String> overLore = compressed.getConfig().getEnhanceLevelLore();
+        enchantBook.setLore(overLore != null ? overLore : Collections.emptyList());
+
         source = source.clone();
         source.setItemMeta(enchantBook);
         return source;
@@ -98,6 +115,7 @@ public class SmithListener implements Listener {
         HumanEntity clicker = event.getWhoClicked();
         if (!(clicker instanceof Player))
             return;
+        Player player = (Player) clicker;
 
         if (!(event.getInventory() instanceof SmithingInventory))
             return;
@@ -114,6 +132,26 @@ public class SmithListener implements Listener {
 
         NamespacedKey dataKey = new NamespacedKey(plugin, "apply_anvil");
         String compressedCustomId = data.get(dataKey, PersistentDataType.STRING);
+        data.remove(dataKey);
+
+        // restore hide enchant
+        dataKey = new NamespacedKey(plugin, "hide_potion_effects");
+        Byte hideEnchants = data.get(dataKey, PersistentDataType.BYTE);
+        if (hideEnchants == null || hideEnchants <= (byte) 0) {
+            itemMeta.removeItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+        }
+        data.remove(dataKey);
+
+        // restore lore
+        dataKey = new NamespacedKey(plugin, "stored_lore");
+        String storedLore = data.get(dataKey, PersistentDataType.STRING);
+        if (storedLore != null) {
+            itemMeta.setLore(Arrays.stream(storedLore.split("\n"))
+                    .map(s -> s.replace("\\n", "\n"))
+                    .collect(Collectors.toList()));
+        } else {
+            itemMeta.setLore(Collections.emptyList());
+        }
         data.remove(dataKey);
 
         CompressedDiamond compressed = CompressedDiamond.from(compressedCustomId);
@@ -141,17 +179,23 @@ public class SmithListener implements Listener {
                     if (new Random().nextFloat() <= rate) {
                         newLevel++;
                         result = true;
+
+                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, SoundCategory.BLOCKS, 1f, 1f);
+                        player.spawnParticle(Particle.NOTE, player.getLocation().add(0, 0.25, 0), 3, 0.5, 0.25, 0.5);
+
                     } else {
                         newLevel = 1;
                         result = false;
+
+                        player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BREAK, SoundCategory.BLOCKS, 1f, 1f);
+                        player.spawnParticle(Particle.VILLAGER_ANGRY, player.getLocation().add(0, 0.25, 0), 3, 0.5, 0.25, 0.5);
                     }
                     enchants.addStoredEnchant(target, newLevel, true);
 
                     plugin.getServer().getPluginManager().callEvent(new CompressedDiamondEnhanceLevelEvent(
-                            ((Player) clicker).getPlayer(),
+                            player.getPlayer(),
                             ((SmithingInventory) event.getInventory()),
-                            itemStack, compressed, target, level, newLevel, result
-                    ));
+                            itemStack, compressed, target, level, newLevel, result));
 
                 } else {
                     throw new NoSuchAction();  // cancelling smith

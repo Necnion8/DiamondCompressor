@@ -1,6 +1,6 @@
 package com.gmail.necnionch.myplugin.diamondcompressor.bukkit;
 
-import com.gmail.necnionch.myplugin.diamondcompressor.config.PluginConfig;
+import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.config.PluginConfig;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.MetaCraftingAPI;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.item.CustomItem;
 import org.bukkit.ChatColor;

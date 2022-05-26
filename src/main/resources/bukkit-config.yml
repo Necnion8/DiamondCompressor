@@ -3,19 +3,33 @@ compressed:
   x4diamond:
     craftable: true
     overenchant-rate: 0.1
+    overenchant-lore: |-
+      &6低確率で最大レベルのエンチャントを更に強化できます
+      &6ただし失敗すると &e&nレベル Ⅰ &6 に戻ってしまいます！
   x16diamond:
     craftable: true
     overenchant-rate: 0.25
+    overenchant-lore: |-
+      &6低確率で最大レベルのエンチャントを更に強化できます
+      &6ただし失敗すると &e&nレベル Ⅰ &6 に戻ってしまいます！
   x64diamond:
     craftable: true
     overenchant-rate: 0.4
+    overenchant-lore: |-
+      &6低確率で最大レベルのエンチャントを更に強化できます
+      &6ただし失敗すると &e&nレベル Ⅰ &6 に戻ってしまいます！
   x256diamond:
     craftable: true
     overenchant-rate: 0.6
+    overenchant-lore: |-
+      &6高確率で最大レベルのエンチャントを更に強化できます
+      &6ただし失敗すると &e&nレベル Ⅰ &6 に戻ってしまいます！
   x1024diamond:
     craftable: true
     overenchant-rate: 0.9
-
+    overenchant-lore: |-
+      &6高確率で最大レベルのエンチャントを更に強化できます
+      &6ただし失敗すると &e&nレベル Ⅰ &6 に戻ってしまいます！
 
 enchant-level-limits:  # enchantment namespacedKey
 #  unbreaking: 10  # max level

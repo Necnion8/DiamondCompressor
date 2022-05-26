@@ -1,8 +1,8 @@
 package com.gmail.necnionch.myplugin.diamondcompressor.bukkit;
 
+import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.config.PluginConfig;
 import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.listeners.CraftListener;
 import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.listeners.SmithListener;
-import com.gmail.necnionch.myplugin.diamondcompressor.config.PluginConfig;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.MetaCraftingAPI;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.recipe.CustomRecipe;
 import org.bukkit.Material;
