@@ -57,7 +57,9 @@ public class SmithListener implements Listener {
             craft(event);
 
         } catch (Throwable e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to smithing event", e);
+            if (!(e instanceof NoSuchAction)) {
+                plugin.getLogger().log(Level.SEVERE, "Failed to smithing event", e);
+            }
             event.setCancelled(true);
             event.setResult(Event.Result.DENY);
         }
@@ -80,12 +82,12 @@ public class SmithListener implements Listener {
             return null;
 
         if (enchantBook.getStoredEnchants().entrySet().stream()
-                .noneMatch(e -> e.getKey().getMaxLevel() <= e.getValue())) {
-            return null;
-        }
+                .filter(e -> e.getKey().getMaxLevel() <= e.getValue())  // 最大レベルorそれ以上か
+                .noneMatch(e -> plugin.getPluginConfig().isAllowEnchantLevelUp(e.getKey(), e.getValue()))  // 上限レベルではないか
+        ) return null;
 
         PersistentDataContainer data = enchantBook.getPersistentDataContainer();
-        data.set(new NamespacedKey(plugin, "apply_anvil"), PersistentDataType.STRING, compressed.getItemId());
+        data.set(new NamespacedKey(plugin, "apply_anvil"), PersistentDataType.STRING, compressed.getItemId());  // todo: lore tuika
         source = source.clone();
         source.setItemMeta(enchantBook);
         return source;
@@ -116,41 +118,24 @@ public class SmithListener implements Listener {
         CompressedDiamond compressed = CompressedDiamond.from(compressedCustomId);
         if (compressed != null) {
             // apply compressed
-            float value = 0;
-            switch (compressed.getDiamondTotalAmount()) {
-                case 4:
-                    value = 0.1f;
-                    break;
-                case 16:
-                    value = 0.25f;
-                    break;
-                case 64:
-                    value = 0.4f;
-                    break;
-                case 256:
-                    value = 0.6f;
-                    break;
-                case 1024:
-                    value = 0.9f;
-                    break;
-//                case 4096:
-//                    value = 1.0f;
-            }
+            float rate = compressed.getConfig().getOverEnchantRate();
 
             if (itemMeta instanceof EnchantmentStorageMeta) {
                 EnchantmentStorageMeta enchants = (EnchantmentStorageMeta) itemMeta;
                 // 最大レベルor超えているenchをまとめる
                 List<Enchantment> entries = enchants.getStoredEnchants().entrySet().stream()
                         .filter(e -> e.getKey().getMaxLevel() <= e.getValue())
+                        .filter(e -> plugin.getPluginConfig().isAllowEnchantLevelUp(e.getKey(), e.getValue()))
                         .map(Map.Entry::getKey)
                         .collect(Collectors.toList());
+
                 if (!entries.isEmpty()) {
                     // どれか一つ選ぶ
                     Enchantment target = entries.get(new Random().nextInt(entries.size()));
                     int level = enchants.getStoredEnchantLevel(target);
 //                    System.out.println("SEL " + target.getKey());
 
-                    if (new Random().nextFloat() <= value) {
+                    if (new Random().nextFloat() <= rate) {
                         // levelUp!
                         enchants.addStoredEnchant(target, level + 1, true);
 //                        System.out.println("HIT : " + (level + 1));
@@ -158,11 +143,12 @@ public class SmithListener implements Listener {
 //                        System.out.println("FAIL");
                         enchants.addStoredEnchant(target, 1, true);
                     }
+
+                } else {
+                    throw new NoSuchAction();  // cancelling smith
                 }
 
-
             }
-
         }
         itemStack.setItemMeta(itemMeta);
         event.setResult(Event.Result.ALLOW);
@@ -176,5 +162,7 @@ public class SmithListener implements Listener {
             item.setAmount(item.getAmount() - 1);
     }
 
+
+    private static class NoSuchAction extends Error {}
 
 }

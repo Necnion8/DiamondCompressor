@@ -1,0 +1,21 @@
+
+compressed:
+  x4diamond:
+    craftable: true
+    overenchant-rate: 0.1
+  x16diamond:
+    craftable: true
+    overenchant-rate: 0.25
+  x64diamond:
+    craftable: true
+    overenchant-rate: 0.4
+  x256diamond:
+    craftable: true
+    overenchant-rate: 0.6
+  x1024diamond:
+    craftable: true
+    overenchant-rate: 0.9
+
+
+enchant-level-limits:  # enchantment namespacedKey
+#  unbreaking: 10  # max level

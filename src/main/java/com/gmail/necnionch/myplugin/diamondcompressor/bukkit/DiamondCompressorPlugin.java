@@ -1,6 +1,8 @@
 package com.gmail.necnionch.myplugin.diamondcompressor.bukkit;
 
+import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.listeners.CraftListener;
 import com.gmail.necnionch.myplugin.diamondcompressor.bukkit.listeners.SmithListener;
+import com.gmail.necnionch.myplugin.diamondcompressor.config.PluginConfig;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.MetaCraftingAPI;
 import com.gmail.necnionch.myplugin.metacraftingapi.bukkit.recipe.CustomRecipe;
 import org.bukkit.Material;
@@ -8,10 +10,13 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DiamondCompressorPlugin extends JavaPlugin {
+    private final PluginConfig pluginConfig = new PluginConfig(this);
 
     @Override
     public void onEnable() {
+        pluginConfig.load();
         getServer().getPluginManager().registerEvents(new SmithListener(this), this);
+        getServer().getPluginManager().registerEvents(new CraftListener(this), this);
         registerItems();
     }
 
@@ -24,6 +29,9 @@ public final class DiamondCompressorPlugin extends JavaPlugin {
         }
     }
 
+    public PluginConfig getPluginConfig() {
+        return pluginConfig;
+    }
 
     private void registerItems() {
         MetaCraftingAPI.registerCustomItem(this, CompressedDiamond.X4);
