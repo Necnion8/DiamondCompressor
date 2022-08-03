@@ -134,6 +134,10 @@ public class SmithListener implements Listener {
         String compressedCustomId = data.get(dataKey, PersistentDataType.STRING);
         data.remove(dataKey);
 
+        CompressedDiamond compressed = CompressedDiamond.from(compressedCustomId);
+        if (compressed == null)  // カスタムIDがマッチしなければ全て無視する
+            return;
+
         // restore hide enchant
         dataKey = new NamespacedKey(plugin, "hide_potion_effects");
         Byte hideEnchants = data.get(dataKey, PersistentDataType.BYTE);
@@ -154,55 +158,53 @@ public class SmithListener implements Listener {
         }
         data.remove(dataKey);
 
-        CompressedDiamond compressed = CompressedDiamond.from(compressedCustomId);
-        if (compressed != null) {
-            // apply compressed
-            float rate = compressed.getConfig().getOverEnchantRate();
+        // apply compressed
+        float rate = compressed.getConfig().getOverEnchantRate();
 
-            if (itemMeta instanceof EnchantmentStorageMeta) {
-                EnchantmentStorageMeta enchants = (EnchantmentStorageMeta) itemMeta;
-                // 最大レベルor超えているenchをまとめる
-                List<Enchantment> entries = enchants.getStoredEnchants().entrySet().stream()
-                        .filter(e -> e.getKey().getMaxLevel() <= e.getValue())
-                        .filter(e -> plugin.getPluginConfig().isAllowEnchantLevelUp(e.getKey(), e.getValue()))
-                        .map(Map.Entry::getKey)
-                        .collect(Collectors.toList());
+        if (itemMeta instanceof EnchantmentStorageMeta) {
+            EnchantmentStorageMeta enchants = (EnchantmentStorageMeta) itemMeta;
+            // 最大レベルor超えているenchをまとめる
+            List<Enchantment> entries = enchants.getStoredEnchants().entrySet().stream()
+                    .filter(e -> e.getKey().getMaxLevel() <= e.getValue())
+                    .filter(e -> plugin.getPluginConfig().isAllowEnchantLevelUp(e.getKey(), e.getValue()))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
 
-                if (!entries.isEmpty()) {
-                    // どれか一つ選ぶ
-                    Enchantment target = entries.get(new Random().nextInt(entries.size()));
-                    int level = enchants.getStoredEnchantLevel(target);
-                    int newLevel = level;
-                    boolean result;
+            if (!entries.isEmpty()) {
+                // どれか一つ選ぶ
+                Enchantment target = entries.get(new Random().nextInt(entries.size()));
+                int level = enchants.getStoredEnchantLevel(target);
+                int newLevel = level;
+                boolean result;
 //                    System.out.println("SEL " + target.getKey());
 
-                    if (new Random().nextFloat() <= rate) {
-                        newLevel++;
-                        result = true;
+                if (new Random().nextFloat() <= rate) {
+                    newLevel++;
+                    result = true;
 
-                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, SoundCategory.BLOCKS, 1f, 1f);
-                        player.spawnParticle(Particle.NOTE, player.getLocation().add(0, 0.25, 0), 3, 0.5, 0.25, 0.5);
-
-                    } else {
-                        newLevel = 1;
-                        result = false;
-
-                        player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BREAK, SoundCategory.BLOCKS, 1f, 1f);
-                        player.spawnParticle(Particle.VILLAGER_ANGRY, player.getLocation().add(0, 0.25, 0), 3, 0.5, 0.25, 0.5);
-                    }
-                    enchants.addStoredEnchant(target, newLevel, true);
-
-                    plugin.getServer().getPluginManager().callEvent(new CompressedDiamondEnhanceLevelEvent(
-                            player.getPlayer(),
-                            ((SmithingInventory) event.getInventory()),
-                            itemStack, compressed, target, level, newLevel, result));
+                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, SoundCategory.BLOCKS, 1f, 1f);
+                    player.spawnParticle(Particle.NOTE, player.getLocation().add(0, 0.25, 0), 3, 0.5, 0.25, 0.5);
 
                 } else {
-                    throw new NoSuchAction();  // cancelling smith
-                }
+                    newLevel = 1;
+                    result = false;
 
+                    player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BREAK, SoundCategory.BLOCKS, 1f, 1f);
+                    player.spawnParticle(Particle.VILLAGER_ANGRY, player.getLocation().add(0, 0.25, 0), 3, 0.5, 0.25, 0.5);
+                }
+                enchants.addStoredEnchant(target, newLevel, true);
+
+                plugin.getServer().getPluginManager().callEvent(new CompressedDiamondEnhanceLevelEvent(
+                        player.getPlayer(),
+                        ((SmithingInventory) event.getInventory()),
+                        itemStack, compressed, target, level, newLevel, result));
+
+            } else {
+                throw new NoSuchAction();  // cancelling smith
             }
+
         }
+
         itemStack.setItemMeta(itemMeta);
         event.setResult(Event.Result.ALLOW);
         event.setCursor(itemStack);
